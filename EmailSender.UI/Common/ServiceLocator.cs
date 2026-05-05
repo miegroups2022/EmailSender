@@ -8,14 +8,14 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EmailSender.Core.ApiClients
+namespace EmailSender.UI.Common
 {
     /// <summary>
-    /// Meetby 服务器 API 客户端
+    /// Meetby 服务器 API 客户端   当前上下文中不存在名称“ServiceLocator”
     /// USE_MOCK = true  → 读取本地 mock/*.json 文件
     /// USE_MOCK = false → 请求真实服务器 http://ems.meetby.net
     /// </summary>
-    public class MeetbyApiClient
+    public class ServiceLocator
     {
         // ══════════════════════════════════════════════════════
         // ⭐ 唯一开关：改这里切换 Mock / 真实接口
@@ -30,7 +30,7 @@ namespace EmailSender.Core.ApiClients
         private static string MockDir =>
             Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "mock");
 
-        public MeetbyApiClient(string baseUrl)
+        public ServiceLocator(string baseUrl)
         {
             _baseUrl = baseUrl?.TrimEnd('/');
             _http = new HttpClient();

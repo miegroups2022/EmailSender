@@ -33,7 +33,12 @@ namespace EmailSender.Core.Helpers
         private const int    CallbackPort   = 9988;
         private const string RedirectUri    = "http://localhost:9988/callback";
 
-
+        // ✅ 新增：构造函数
+        public OAuthHelper(SenderAccountRepository accountRepo, AppConfigRepository configRepo)
+        {
+            _accountRepo = accountRepo;
+            _configRepo = configRepo;
+        }
 
         // ── 1. 生成授权 URL ────────────────────────────────────
 
@@ -226,6 +231,9 @@ namespace EmailSender.Core.Helpers
             if (tokenData.TryGetValue("expires_in", out var expiresIn)
                 && int.TryParse(expiresIn, out var seconds))
                 account.TokenExpiresAt = DateTime.Now.AddSeconds(seconds);
+
+            // ✅ 新增：标记为已授权
+            account.IsOAuthAuthorized = true;
 
             _accountRepo.Update(account);
         }

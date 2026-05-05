@@ -6,7 +6,7 @@ using EmailSender.Core.Services;
 using EmailSender.Models;
 using EmailSender.UI.Common;
 using EmailSender.UI.Forms;
-using ServiceLocator = EmailSender.UI.Common.ServiceLocator; // ✅ 消除命名冲突
+using ServiceLocator = EmailSender.UI.Common.er; // ✅ 消除命名冲突
 
 namespace EmailSender.UI.Controls
 {
