@@ -1,3 +1,7 @@
+using EmailSender.Core.ApiClients;
+using EmailSender.Core.Helpers;
+using EmailSender.Core.Services;
+using EmailSender.Data.Repositories;
 using EmailSender.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -17,6 +21,7 @@ namespace EmailSender.UI.Common
     /// </summary>
     public class ServiceLocator
     {
+
         // ══════════════════════════════════════════════════════
         // ⭐ 唯一开关：改这里切换 Mock / 真实接口
         // ══════════════════════════════════════════════════════
@@ -30,12 +35,83 @@ namespace EmailSender.UI.Common
         private static string MockDir =>
             Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "mock");
 
+
+        // 仓储层 -- 在 EmailSender.Date 下面，做数据操作的
+        public static AppConfigRepository configRepository { get; private set; }
+        public static BlacklistRepository blacklistRepository { get; private set; }
+        public static EmailAddressRepository emailAddressRepository { get; private set; }
+        public static EmailTemplateRepository emailTemplateRepository { get; private set; }
+        public static SenderAccountRepository senderAccountRepository { get; private set; }
+        public static SendRecordRepository sendRecordRepository { get; private set; }
+        public static SendTaskRepository sendTaskRepository { get; private set; }
+        
+
+        // API 客户端 --- 在 EmailSender.Core 下面的 ApiClents 文件夹里面 ，有2个
+        public static MeetbyApiClient meetbyApiClient { get; private set; }
+        public static SendCloudApiClient sendCloudApiClient { get; private set; }
+
+        // 服务层  --- 在 EmailSender.Core 下面的 Services 文件夹里面 ，有好几个个
+        public static AuthService authService { get; private set; }
+        public static EmailListService emailListService { get; private set; }
+        public static SendEngineService sendEngineService { get; private set; }
+        public static SendTaskService sendTaskService { get; private set; }
+        public static TemplateService templateService { get; private set; }
+        public static MockApiService mockApiService { get; private set; }
+        public static AiAnalysisService aiAnalysisService { get; private set; }
+        public static ResultFetchService resultFetchService { get; private set; }
+        public static BlacklistService blacklistService { get; private set; }
+       
+
+
+        // 辅助工具
+        public static OAuthHelper oAuthHelper { get; private set; }
+        public static TemplateRenderer templateRenderer { get; private set; }
+        
+
         public ServiceLocator(string baseUrl)
         {
             _baseUrl = baseUrl?.TrimEnd('/');
             _http = new HttpClient();
             _http.Timeout = TimeSpan.FromSeconds(30);
         }
+
+        /// <summary>初始化所有服务</summary>
+        public static void Initialize(string dbPath = "emailsender.db")
+        {
+            // 1. 初始化仓储
+            configRepository = new AppConfigRepository();
+            senderAccountRepository = new SenderAccountRepository();
+            emailAddressRepository = new EmailAddressRepository();
+            sendTaskRepository = new SendTaskRepository();
+           
+
+            // 2. 初始化 API 客户端（你的 Mock 逻辑在这里）
+            meetbyApiClient = new MeetbyApiClient("http://ems.meetby.net");
+            sendCloudApiClient = new SendCloudApiClient("http://ems.meetby.net","user","key");
+
+            // 3. 初始化服务层
+
+            mockApiService = new MockApiService();
+            // ⚠️ 注意：authService 需要 meetbyApiClient，这里需要适配
+            authService = new AuthService(meetbyApiClient, configRepository);
+            
+            emailListService = new EmailListService(meetbyApiClient,emailAddressRepository,blacklistRepository, configRepository);
+            templateService = new TemplateService(meetbyApiClient,sendCloudApiClient,emailTemplateRepository,aiAnalysisService);
+            
+            sendEngineService = new SendEngineService(sendCloudApiClient, senderAccountRepository, sendRecordRepository, emailAddressRepository, blacklistRepository, templateRenderer);
+            sendTaskService = new SendTaskService(sendTaskRepository,emailListService,sendEngineService);
+
+            resultFetchService = new ResultFetchService( sendCloudApiClient, sendRecordRepository, sendTaskRepository, blacklistRepository);
+
+            blacklistService = new BlacklistService(blacklistRepository);
+
+
+         // 4. 初始化辅助工具
+         oAuthHelper = new OAuthHelper(senderAccountRepository, configRepository);
+            templateRenderer = new TemplateRenderer();
+
+        }
+    
 
         // ── 认证 ──────────────────────────────────────────────
 

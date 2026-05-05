@@ -16,7 +16,7 @@ namespace EmailSender.UI.WizardSteps
 
         private void LoadAccounts()
         {
-            cmbAccount.DataSource    = ServiceLocator.SenderAccountRepo.GetAll();
+            cmbAccount.DataSource    = ServiceLocator.senderAccountRepository.GetAll();
             cmbAccount.DisplayMember = "Name";
             cmbAccount.ValueMember   = "Id";
         }

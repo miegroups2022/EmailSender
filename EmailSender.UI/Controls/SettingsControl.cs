@@ -115,7 +115,7 @@ namespace EmailSender.UI.Controls
             if (dgvAccounts.CurrentRow?.DataBoundItem is not SenderAccount acc) return;
             try
             {
-                ServiceLocator.OAuthHelper.StartGmailAuth(acc.Id);
+                ServiceLocator.oAuthHelper.StartGmailAuth(acc.Id);
                 UIHelper.Info("浏览器已打开，请完成授权后回到此窗口");
             }
             catch (Exception ex) { UIHelper.Error(ex.Message); }
@@ -126,7 +126,7 @@ namespace EmailSender.UI.Controls
             if (dgvAccounts.CurrentRow?.DataBoundItem is not SenderAccount acc) return;
             try
             {
-                ServiceLocator.OAuthHelper.StartHotmailAuth(acc.Id);
+                ServiceLocator.oAuthHelper.StartHotmailAuth(acc.Id);
                 UIHelper.Info("浏览器已打开，请完成授权后回到此窗口");
             }
             catch (Exception ex) { UIHelper.Error(ex.Message); }

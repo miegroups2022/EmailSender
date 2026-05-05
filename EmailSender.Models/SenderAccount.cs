@@ -7,9 +7,17 @@ namespace EmailSender.Models
     /// </summary>
     public class SenderAccount
     {
-        public int         Id              { get; set; }
-        public string      Name            { get; set; }   // 账户别名
-        public AccountType AccountType     { get; set; }
+
+        public int Id { get; set; }
+
+        public string Name { get; set; }   // 账户别名
+
+        public string AccountName { get; set; }       // 账号别名
+
+
+        public int Provider { get; set; }       // MailProvider 枚举值
+        public int AuthMode { get; set; }       // AuthType 枚举值
+        public AccountType AccountType { get; set; }
 
         // SendCloud
         public string      ApiUser         { get; set; }
@@ -21,12 +29,26 @@ namespace EmailSender.Models
         public string      OAuthRefreshToken { get; set; } // 加密存储
         public DateTime?   TokenExpiresAt  { get; set; }
 
+
+        // ✅ 新增：OAuth 授权状态
+        public bool IsOAuthAuthorized { get; set; } = false;
+
+
+
+        //public bool SmtpUseSsl { get; set; }
+        //public string SmtpUser { get; set; }
+        //public string SmtpPassword { get; set; }
+ 
+        //public string SmtpFromEmail { get; set; }
+
+
+
         // SMTP
         public string      SmtpHost        { get; set; }
         public int         SmtpPort        { get; set; } = 587;
-        public bool        SmtpUseSsl      { get; set; } = true;
-        public string      SmtpUser        { get; set; }
-        public string      SmtpPassword    { get; set; }  // 加密存储
+        public bool SmtpUseSsl { get; set; } = true;
+        public string SmtpUser { get; set; }
+        public string SmtpPassword { get; set; }  // 加密存储
         public string      SmtpFromEmail   { get; set; }
         public string      SmtpFromName    { get; set; }
 
@@ -50,8 +72,6 @@ namespace EmailSender.Models
         public bool NeedVpn { get; set; }       // 是否需要VPN
 
 
-        // ✅ 新增：OAuth 授权状态
-        public bool IsOAuthAuthorized { get; set; } = false;
 
         // ✅ 新增：发件域名（从 SmtpFromEmail 自动提取）
         public string SenderDomain =>

@@ -19,6 +19,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="mock\auth_login.json.code.json" />
+    <None Remove="mock\recipients.json.code.json" />
+    <None Remove="mock\templates.json.code.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\EmailSender.Models\EmailSender.Models.csproj" />
     <ProjectReference Include="..\EmailSender.Data\EmailSender.Data.csproj" />
     <ProjectReference Include="..\EmailSender.Core\EmailSender.Core.csproj" />
@@ -32,17 +38,10 @@
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="9.0.1" />
   </ItemGroup>
 
-  <!-- Mock JSON 文件：复制到输出目录 -->
   <ItemGroup>
-    <Content Include="mock\auth_login.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="mock\templates.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="mock\recipients.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <Folder Include="mock\" />
   </ItemGroup>
+
+  <!-- Mock JSON 文件：复制到输出目录 -->
 
 </Project>

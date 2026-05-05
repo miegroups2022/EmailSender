@@ -6,7 +6,6 @@ using EmailSender.Core.Services;
 using EmailSender.Models;
 using EmailSender.UI.Common;
 using EmailSender.UI.Forms;
-using ServiceLocator = EmailSender.UI.Common.er; // ✅ 消除命名冲突
 
 namespace EmailSender.UI.Controls
 {
@@ -21,7 +20,7 @@ namespace EmailSender.UI.Controls
 
         private void LoadTasks()
         {
-            var tasks = ServiceLocator.SendTaskService.GetAll();
+            var tasks = ServiceLocator.sendTaskService.GetAll();
             dgvTasks.DataSource = null;
             dgvTasks.DataSource = tasks;
             SetupColumns();
@@ -77,7 +76,7 @@ namespace EmailSender.UI.Controls
 
             try
             {
-                await ServiceLocator.SendTaskService.StartTaskAsync(task.Id, progress);
+                await ServiceLocator.sendTaskService.StartTaskAsync(task.Id, progress);
                 UIHelper.Info("任务执行完成！");
             }
             catch (Exception ex)
@@ -100,7 +99,7 @@ namespace EmailSender.UI.Controls
             lblStatus.Text = "正在拉取结果...";
             try
             {
-                int updated = await ServiceLocator.ResultFetchService
+                int updated = await ServiceLocator.resultFetchService
                     .FetchPendingResultsAsync(task.Id);
                 lblStatus.Text = $"已更新 {updated} 条记录";
                 LoadTasks();
@@ -122,7 +121,7 @@ namespace EmailSender.UI.Controls
         {
             if (dgvTasks.CurrentRow?.DataBoundItem is not SendTask task) return;
             if (!UIHelper.Confirm($"确定删除任务「{task.Name}」？")) return;
-            ServiceLocator.SendTaskService.Delete(task.Id);
+            ServiceLocator.sendTaskService.Delete(task.Id);
             LoadTasks();
         }
     }

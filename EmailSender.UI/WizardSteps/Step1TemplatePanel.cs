@@ -20,7 +20,7 @@ namespace EmailSender.UI.WizardSteps
 
         private void LoadTemplates()
         {
-            var list = ServiceLocator.TemplateService.GetAll();
+            var list = ServiceLocator.templateService.GetAll();
             dgvTemplates.DataSource = list;
             SetupColumns();
         }
@@ -74,7 +74,7 @@ namespace EmailSender.UI.WizardSteps
             btnSyncTemplates.Enabled = false;
             try
             {
-                await ServiceLocator.TemplateService.SyncFromMeetbyAsync();
+                await ServiceLocator.templateService.SyncFromMeetbyAsync();
                 LoadTemplates();
             }
             catch (Exception ex) { UIHelper.Error(ex.Message); }

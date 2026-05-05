@@ -17,7 +17,7 @@ namespace EmailSender.UI.Controls
         private void LoadTemplates()
         {
             dgvTemplates.DataSource = null;
-            dgvTemplates.DataSource = ServiceLocator.TemplateService.GetAll();
+            dgvTemplates.DataSource = ServiceLocator.templateService.GetAll();
         }
 
         private async void btnSyncFromMeetby_Click(object sender, EventArgs e)
@@ -26,7 +26,7 @@ namespace EmailSender.UI.Controls
             lblStatus.Text = "正在从 meetby 同步模版...";
             try
             {
-                var list = await ServiceLocator.TemplateService.SyncFromMeetbyAsync();
+                var list = await ServiceLocator.templateService.SyncFromMeetbyAsync();
                 lblStatus.Text = $"同步完成，共 {list.Count} 个模版";
                 LoadTemplates();
             }
@@ -41,7 +41,7 @@ namespace EmailSender.UI.Controls
             lblStatus.Text = "正在推送到 SendCloud...";
             try
             {
-                await ServiceLocator.TemplateService.SyncToSendCloudAsync(t.Id);
+                await ServiceLocator.templateService.SyncToSendCloudAsync(t.Id);
                 lblStatus.Text = "推送成功！";
                 LoadTemplates();
             }
@@ -56,8 +56,8 @@ namespace EmailSender.UI.Controls
             lblStatus.Text = "AI 分析中，请稍候...";
             try
             {
-                await ServiceLocator.TemplateService.AnalyzeWithAiAsync(t.Id);
-                var updated = ServiceLocator.TemplateService.GetById(t.Id);
+                await ServiceLocator.templateService.AnalyzeWithAiAsync(t.Id);
+                var updated = ServiceLocator.templateService.GetById(t.Id);
                 lblAiScore.Text = $"AI 评分：{updated.AiScore} / 100";
 
                 // ✅ 修复：使用 \n 替代实际换行符

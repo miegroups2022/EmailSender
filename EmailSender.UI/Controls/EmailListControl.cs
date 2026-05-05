@@ -20,7 +20,7 @@ namespace EmailSender.UI.Controls
         {
             try
             {
-                var lists = await ServiceLocator.MeetbyApi.GetEmailListsAsync();
+                var lists = await ServiceLocator.meetbyApiClient.GetEmailListsAsync();
                 cmbList.DataSource    = lists;
                 cmbList.DisplayMember = "ListName";
                 cmbList.ValueMember   = "ListId";
@@ -44,7 +44,7 @@ namespace EmailSender.UI.Controls
                     lblStatus.Text = $"下载中 {p.current}/{p.total}"));
             try
             {
-                int count = await ServiceLocator.EmailListService
+                int count = await ServiceLocator.emailListService
                     .DownloadAndSaveAsync(_selectedListId, _selectedListName, progress);
                 lblStatus.Text = $"下载完成，共 {count} 个地址";
                 RefreshStats();
@@ -56,8 +56,8 @@ namespace EmailSender.UI.Controls
         private void RefreshStats()
         {
             if (_selectedListId == 0) return;
-            int total  = ServiceLocator.EmailListService.GetCount(_selectedListId);
-            var domain = ServiceLocator.EmailListService.GetDomainStats(_selectedListId);
+            int total  = ServiceLocator.emailListService.GetCount(_selectedListId);
+            var domain = ServiceLocator.emailListService.GetDomainStats(_selectedListId);
 
             lblTotal.Text = $"有效地址：{total} 个";
             dgvDomain.DataSource = domain

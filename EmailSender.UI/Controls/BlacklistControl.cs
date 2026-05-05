@@ -68,7 +68,7 @@ namespace EmailSender.UI.Controls
             if (dlg.ShowDialog() != DialogResult.OK) return;
             try
             {
-                ServiceLocator.BlacklistService.ExportToFile(dlg.FileName);
+                ServiceLocator.blacklistService.ExportToFile(dlg.FileName);
                 UIHelper.Info("导出成功！");
             }
             catch (Exception ex) { UIHelper.Error(ex.Message); }

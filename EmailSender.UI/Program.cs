@@ -23,7 +23,7 @@ namespace EmailSender.UI
                 ServiceLocator.Initialize();
 
                 // 尝试恢复上次登录会话
-                var auth = ServiceLocator.AuthService;
+                var auth = ServiceLocator.authService;
                 if (auth.TryRestoreSession())
                 {
                     Application.Run(new MainForm());

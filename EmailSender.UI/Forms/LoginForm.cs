@@ -27,7 +27,7 @@ namespace EmailSender.UI.Forms
 
             try
             {
-                await ServiceLocator.AuthService.LoginAsync(username, password);
+                await ServiceLocator.authService.LoginAsync(username, password);
                 Hide();
                 var main = new MainForm();
                 main.FormClosed += (s, args) => Close();

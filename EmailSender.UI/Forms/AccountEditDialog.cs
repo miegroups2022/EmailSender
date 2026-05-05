@@ -2,9 +2,10 @@
 using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.ComponentModel;
 using EmailSender.Core.Services;
 using EmailSender.Models;
-using System.ComponentModel;
+using EmailSender.Core;
 
 namespace EmailSender.UI.Forms
 {
@@ -23,7 +24,7 @@ namespace EmailSender.UI.Forms
                 Provider    = (int)MailProvider.Custom,
                 AuthMode    = (int)AuthType.SmtpPassword,
                 SmtpPort    = 465,
-                UseSsl      = true,
+                SmtpUseSsl      = true,
                 DailyLimit  = 200,
                 IntervalMin = 30,
                 IntervalMax = 90,
@@ -82,11 +83,11 @@ namespace EmailSender.UI.Forms
             cmbProvider.SelectedIndex = Account.Provider;
             txtHost.Text              = Account.SmtpHost;
             nudPort.Value             = Account.SmtpPort > 0 ? Account.SmtpPort : 465;
-            chkSsl.Checked            = Account.UseSsl;
-            txtUser.Text              = Account.Username;
-            txtPass.Text              = Account.Password;
-            txtSenderName.Text        = Account.SenderName;
-            txtSenderEmail.Text       = Account.SenderEmail;
+            chkSsl.Checked            = Account.SmtpUseSsl;
+            txtUser.Text              = Account.SmtpUser;
+            txtPass.Text              = Account.SmtpPassword;
+            txtSenderName.Text        = Account.SmtpFromName;
+            txtSenderEmail.Text       = Account.SmtpFromEmail;
             nudDailyLimit.Value       = Account.DailyLimit;
             nudIntervalMin.Value      = Account.IntervalMin;
             nudIntervalMax.Value      = Account.IntervalMax;
@@ -151,11 +152,11 @@ namespace EmailSender.UI.Forms
             {
                 OutlookTempKey         = tempKey;   // 保存临时 key，入库后由调用方重命名
                 Account.OAuthTokenJson = tokenJson;
-                Account.Username       = email;
-                Account.SenderEmail    = email;
+                Account.SmtpUser       = email;
+                Account.SmtpFromEmail    = email;
                 Account.SmtpHost       = "smtp-mail.outlook.com";  // 直接写入 Account
                 Account.SmtpPort       = 587;
-                Account.UseSsl         = false;  // STARTTLS
+                Account.SmtpUseSsl         = false;  // STARTTLS
 
                 txtUser.Text        = email;
                 txtSenderEmail.Text = email;
@@ -168,7 +169,7 @@ namespace EmailSender.UI.Forms
                 pnlSmtp.Visible   = true;
                 txtHost.Text      = Account.SmtpHost;
                 nudPort.Value     = Account.SmtpPort;
-                chkSsl.Checked    = Account.UseSsl;
+                chkSsl.Checked    = Account.SmtpUseSsl;
                 txtHost.ReadOnly  = true;
                 nudPort.Enabled   = false;
 
@@ -218,11 +219,11 @@ namespace EmailSender.UI.Forms
             if (ok)
             {
                 Account.OAuthTokenJson = tokenJson;
-                Account.Username       = email;
-                Account.SenderEmail    = email;
+                Account.SmtpUser       = email;
+                Account.SmtpFromEmail    = email;
                 Account.SmtpHost       = "smtp.gmail.com";  // 直接写入 Account
                 Account.SmtpPort       = 465;
-                Account.UseSsl         = true;
+                Account.SmtpUseSsl         = true;
 
                 txtUser.Text        = email;
                 txtSenderEmail.Text = email;
@@ -233,7 +234,7 @@ namespace EmailSender.UI.Forms
 
                 txtHost.Text     = Account.SmtpHost;
                 nudPort.Value    = Account.SmtpPort;
-                chkSsl.Checked   = Account.UseSsl;
+                chkSsl.Checked   = Account.SmtpUseSsl;
                 txtHost.ReadOnly = true;
                 nudPort.Enabled  = false;
                 pnlOAuth.Visible = false;
@@ -344,26 +345,26 @@ namespace EmailSender.UI.Forms
 
             if (isOAuth)
             {
-                // OAuth 账号：Username/SenderEmail 在授权时已填入 Account，不从输入框读取
-                // SenderName 允许用户手动补充
+                // OAuth 账号：SmtpUser/SmtpFromEmail 在授权时已填入 Account，不从输入框读取
+                // SmtpFromName 允许用户手动补充
                 if (!string.IsNullOrWhiteSpace(txtSenderName.Text))
-                    Account.SenderName = txtSenderName.Text.Trim();
-                if (string.IsNullOrWhiteSpace(Account.SenderName))
-                    Account.SenderName = Account.SenderEmail;
+                    Account.SmtpFromName = txtSenderName.Text.Trim();
+                if (string.IsNullOrWhiteSpace(Account.SmtpFromName))
+                    Account.SmtpFromName = Account.SmtpFromEmail;
             }
             else
             {
                 // SMTP 账号：从输入框读取全部字段
                 Account.SmtpHost    = txtHost.Text.Trim();
                 Account.SmtpPort    = (int)nudPort.Value;
-                Account.UseSsl      = chkSsl.Checked;
-                Account.Username    = txtUser.Text.Trim();
-                Account.Password    = txtPass.Text;
-                Account.SenderName  = txtSenderName.Text.Trim();
-                Account.SenderEmail = txtSenderEmail.Text.Trim();
+                Account.SmtpUseSsl      = chkSsl.Checked;
+                Account.SmtpUser    = txtUser.Text.Trim();
+                Account.SmtpPassword    = txtPass.Text;
+                Account.SmtpFromName  = txtSenderName.Text.Trim();
+                Account.SmtpFromEmail = txtSenderEmail.Text.Trim();
 
-                if (string.IsNullOrWhiteSpace(Account.SenderEmail) && Account.Username.Contains('@'))
-                    Account.SenderEmail = Account.Username;
+                if (string.IsNullOrWhiteSpace(Account.SmtpFromEmail) && Account.SmtpUser.Contains('@'))
+                    Account.SmtpFromEmail = Account.SmtpUser;
             }
 
             return true;

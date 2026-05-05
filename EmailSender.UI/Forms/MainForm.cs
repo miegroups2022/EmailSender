@@ -42,7 +42,7 @@ namespace EmailSender.UI.Forms
 
         private void UpdateStatusBar()
         {
-            lblUser.Text = $"登录：{ServiceLocator.AuthService.CurrentUsername}";
+            lblUser.Text = $"登录：{ServiceLocator.authService.CurrentUsername}";
         }
 
         // ── 导航按钮事件 ──────────────────────────────────────
@@ -75,7 +75,7 @@ namespace EmailSender.UI.Forms
         private void btnLogout_Click(object s, EventArgs e)
         {
             if (!UIHelper.Confirm("确定退出登录？")) return;
-            ServiceLocator.AuthService.Logout();
+            ServiceLocator.authService.Logout();
             var login = new LoginForm();
             login.Show();
             Close();

@@ -39,7 +39,7 @@ namespace EmailSender.UI.WizardSteps
             SelectedListName = dgvLists.CurrentRow.Cells["列表名称"].Value?.ToString();
 
             // 刷新本地统计
-            int localCount = ServiceLocator.EmailListService.GetCount(SelectedListId);
+            int localCount = ServiceLocator.emailListService.GetCount(SelectedListId);
             lblLocalCount.Text = localCount > 0
                 ? $"本地已缓存：{localCount} 个地址"
                 : "本地暂无缓存，请先下载";
@@ -58,7 +58,7 @@ namespace EmailSender.UI.WizardSteps
                     lblDownloadStatus.Text = $"下载中 {p.current}/{p.total}"));
             try
             {
-                int count = await ServiceLocator.EmailListService
+                int count = await ServiceLocator.emailListService
                     .DownloadAndSaveAsync(SelectedListId, SelectedListName, progress);
                 lblDownloadStatus.Text = $"下载完成，共 {count} 个";
                 lblLocalCount.Text     = $"本地已缓存：{count} 个地址";

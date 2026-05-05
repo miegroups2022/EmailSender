@@ -84,7 +84,7 @@ namespace EmailSender.UI.Forms
 
                 try
                 {
-                    int taskId = ServiceLocator.SendTaskService.CreateTask(_task);
+                    int taskId = ServiceLocator.sendTaskService.CreateTask(_task);
                     UIHelper.Info($"任务创建成功！任务ID：{taskId}");
                     DialogResult = System.Windows.Forms.DialogResult.OK;
                     Close();
