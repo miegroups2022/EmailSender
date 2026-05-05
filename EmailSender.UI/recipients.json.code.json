@@ -1,0 +1,86 @@
+{
+  "code": 0,
+  "message": "ok",
+  "data": {
+    "total": 8,
+    "page": 1,
+    "groups": [
+      { "id": 1, "name": "欧美客户", "count": 4 },
+      { "id": 2, "name": "亚洲客户", "count": 4 }
+    ],
+    "list": [
+      {
+        "id": 1,
+        "email": "john.smith@example.com",
+        "name": "John Smith",
+        "company": "ABC Trading Co.",
+        "country": "USA",
+        "group_id": 1,
+        "status": "active"
+      },
+      {
+        "id": 2,
+        "email": "maria.garcia@empresa.es",
+        "name": "Maria Garcia",
+        "company": "Empresa Solutions",
+        "country": "Spain",
+        "group_id": 1,
+        "status": "active"
+      },
+      {
+        "id": 3,
+        "email": "anna.mueller@gmbh.de",
+        "name": "Anna Müller",
+        "company": "München GmbH",
+        "country": "Germany",
+        "group_id": 1,
+        "status": "active"
+      },
+      {
+        "id": 4,
+        "email": "pierre.dupont@sarl.fr",
+        "name": "Pierre Dupont",
+        "company": "Paris SARL",
+        "country": "France",
+        "group_id": 1,
+        "status": "active"
+      },
+      {
+        "id": 5,
+        "email": "ahmed.ali@import.ae",
+        "name": "Ahmed Ali",
+        "company": "Dubai Imports LLC",
+        "country": "UAE",
+        "group_id": 2,
+        "status": "active"
+      },
+      {
+        "id": 6,
+        "email": "yuki.tanaka@corp.jp",
+        "name": "Yuki Tanaka",
+        "company": "Tokyo Corporation",
+        "country": "Japan",
+        "group_id": 2,
+        "status": "active"
+      },
+      {
+        "id": 7,
+        "email": "li.wei@factory.cn",
+        "name": "Li Wei",
+        "company": "Shenzhen Factory Ltd",
+        "country": "China",
+        "group_id": 2,
+        "status": "active"
+      },
+      {
+        "id": 8,
+        "email": "carlos.silva@ltda.br",
+        "name": "Carlos Silva",
+        "company": "São Paulo Ltda",
+        "country": "Brazil",
+        "group_id": 2,
+        "status": "active"
+      }
+    ]
+  }
+}

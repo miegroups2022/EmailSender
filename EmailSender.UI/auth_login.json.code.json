@@ -1,0 +1,14 @@
+{
+  "code": 0,
+  "message": "登录成功",
+  "data": {
+    "token": "mock_token_meetby_2026",
+    "expires_at": "2026-12-31T23:59:59Z",
+    "user": {
+      "id": 1,
+      "username": "admin",
+      "nickname": "管理员",
+      "email": "admin@meetby.net"
+    }
+  }
+}

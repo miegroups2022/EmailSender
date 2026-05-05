@@ -1,0 +1,612 @@
+from docx import Document
+from docx.shared import Pt, RGBColor, Inches, Cm
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ALIGN_VERTICAL
+from docx.oxml.ns import qn
+from docx.oxml import OxmlElement
+import copy
+
+doc = Document()
+
+# ── 页面设置 ──────────────────────────────────────────────────
+section = doc.sections[0]
+section.page_width  = Cm(21)
+section.page_height = Cm(29.7)
+section.left_margin   = Cm(2.5)
+section.right_margin  = Cm(2.5)
+section.top_margin    = Cm(2.5)
+section.bottom_margin = Cm(2.5)
+
+# ── 样式辅助函数 ──────────────────────────────────────────────
+def set_cell_bg(cell, hex_color):
+    tc   = cell._tc
+    tcPr = tc.get_or_add_tcPr()
+    shd  = OxmlElement('w:shd')
+    shd.set(qn('w:val'),   'clear')
+    shd.set(qn('w:color'), 'auto')
+    shd.set(qn('w:fill'),  hex_color)
+    tcPr.append(shd)
+
+def set_cell_border(cell, **kwargs):
+    tc   = cell._tc
+    tcPr = tc.get_or_add_tcPr()
+    tcBorders = OxmlElement('w:tcBorders')
+    for edge in ('top','left','bottom','right'):
+        tag = OxmlElement(f'w:{edge}')
+        tag.set(qn('w:val'),   kwargs.get('val',   'single'))
+        tag.set(qn('w:sz'),    kwargs.get('sz',    '4'))
+        tag.set(qn('w:space'), '0')
+        tag.set(qn('w:color'), kwargs.get('color', '4472C4'))
+        tcBorders.append(tag)
+    tcPr.append(tcBorders)
+
+def add_heading(text, level=1):
+    p = doc.add_heading(text, level=level)
+    run = p.runs[0] if p.runs else p.add_run(text)
+    if level == 1:
+        run.font.size  = Pt(18)
+        run.font.color.rgb = RGBColor(0x1F, 0x49, 0x7D)
+        run.font.bold  = True
+    elif level == 2:
+        run.font.size  = Pt(14)
+        run.font.color.rgb = RGBColor(0x2E, 0x74, 0xB5)
+        run.font.bold  = True
+    elif level == 3:
+        run.font.size  = Pt(12)
+        run.font.color.rgb = RGBColor(0x1F, 0x49, 0x7D)
+        run.font.bold  = True
+    p.paragraph_format.space_before = Pt(12)
+    p.paragraph_format.space_after  = Pt(4)
+    return p
+
+def add_para(text, bold=False, size=10.5, indent=0, color=None):
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(2)
+    p.paragraph_format.space_after  = Pt(2)
+    if indent:
+        p.paragraph_format.left_indent = Cm(indent)
+    run = p.add_run(text)
+    run.font.size = Pt(size)
+    run.font.bold = bold
+    if color:
+        run.font.color.rgb = RGBColor(*color)
+    return p
+
+def add_bullet(text, level=0):
+    p = doc.add_paragraph(style='List Bullet')
+    p.paragraph_format.left_indent  = Cm(0.5 + level * 0.5)
+    p.paragraph_format.space_before = Pt(1)
+    p.paragraph_format.space_after  = Pt(1)
+    run = p.add_run(text)
+    run.font.size = Pt(10.5)
+    return p
+
+def add_code_block(lines):
+    for line in lines:
+        p = doc.add_paragraph()
+        p.paragraph_format.left_indent  = Cm(0.8)
+        p.paragraph_format.space_before = Pt(0)
+        p.paragraph_format.space_after  = Pt(0)
+        run = p.add_run(line)
+        run.font.name = 'Courier New'
+        run.font.size = Pt(9)
+        run.font.color.rgb = RGBColor(0x1E, 0x1E, 0x1E)
+        pPr = p._p.get_or_add_pPr()
+        shd = OxmlElement('w:shd')
+        shd.set(qn('w:val'),   'clear')
+        shd.set(qn('w:color'), 'auto')
+        shd.set(qn('w:fill'),  'F3F3F3')
+        pPr.append(shd)
+
+def add_table(headers, rows, header_bg='2E74B5', header_fg='FFFFFF'):
+    col_count = len(headers)
+    table = doc.add_table(rows=1, cols=col_count)
+    table.style = 'Table Grid'
+    table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    # 表头
+    hdr_cells = table.rows[0].cells
+    for i, h in enumerate(headers):
+        set_cell_bg(hdr_cells[i], header_bg)
+        hdr_cells[i].vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+        p = hdr_cells[i].paragraphs[0]
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        run = p.add_run(h)
+        run.font.bold  = True
+        run.font.size  = Pt(10)
+        run.font.color.rgb = RGBColor(
+            int(header_fg[0:2],16),
+            int(header_fg[2:4],16),
+            int(header_fg[4:6],16))
+    # 数据行
+    for ri, row_data in enumerate(rows):
+        row_cells = table.add_row().cells
+        bg = 'FFFFFF' if ri % 2 == 0 else 'DEEAF1'
+        for ci, val in enumerate(row_data):
+            set_cell_bg(row_cells[ci], bg)
+            row_cells[ci].vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+            p = row_cells[ci].paragraphs[0]
+            p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            run = p.add_run(val)
+            run.font.size = Pt(9.5)
+    doc.add_paragraph()
+    return table
+
+# ══════════════════════════════════════════════════════════════
+#  封面
+# ══════════════════════════════════════════════════════════════
+doc.add_paragraph()
+doc.add_paragraph()
+title_p = doc.add_paragraph()
+title_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+run = title_p.add_run('📧 Email Sender')
+run.font.size  = Pt(32)
+run.font.bold  = True
+run.font.color.rgb = RGBColor(0x1F, 0x49, 0x7D)
+
+sub_p = doc.add_paragraph()
+sub_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+run2 = sub_p.add_run('完整开发计划书  v2.0')
+run2.font.size  = Pt(18)
+run2.font.color.rgb = RGBColor(0x2E, 0x74, 0xB5)
+
+doc.add_paragraph()
+info_p = doc.add_paragraph()
+info_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+run3 = info_p.add_run('技术栈：WinForms + .NET Framework 4.8 + SQLite + MySQL\n版本：v2.0    日期：2026-05-05')
+run3.font.size  = Pt(11)
+run3.font.color.rgb = RGBColor(0x70, 0x70, 0x70)
+
+doc.add_page_break()
+
+# ══════════════════════════════════════════════════════════════
+#  一、解决方案目录结构
+# ══════════════════════════════════════════════════════════════
+add_heading('一、解决方案目录结构', 1)
+add_para('解决方案采用四层架构，各层职责清晰，互不耦合：', size=10.5)
+add_code_block([
+    'EmailSender.sln',
+    '│',
+    '├── EmailSender.Models      ← 数据模型层（纯 POCO 类）',
+    '├── EmailSender.Data        ← 数据访问层（SQLite + MySQL）',
+    '├── EmailSender.Core        ← 业务逻辑层（服务类）',
+    '└── EmailSender.UI          ← 界面层（WinForms 主项目）',
+])
+
+# ══════════════════════════════════════════════════════════════
+#  二、完整项目文件树
+# ══════════════════════════════════════════════════════════════
+add_heading('二、完整项目文件树', 1)
+
+file_tree = [
+    'EmailSender.sln',
+    '│',
+    '├── 📁 EmailSender.Models',
+    '│   ├── EmailSender.Models.csproj',
+    '│   ├── AppConfig.cs                  ← 应用配置键值对',
+    '│   ├── EmailAddress.cs               ← 邮件地址 + 联系人',
+    '│   ├── EmailTemplate.cs              ← 邮件模版',
+    '│   ├── SendTask.cs                   ← 发送任务',
+    '│   ├── SendRecord.cs                 ← 发送记录',
+    '│   ├── SenderAccount.cs              ← 发送账户',
+    '│   ├── Blacklist.cs                  ← 黑名单',
+    '│   └── Enums.cs                      ← 所有枚举定义',
+    '│',
+    '├── 📁 EmailSender.Data',
+    '│   ├── EmailSender.Data.csproj',
+    '│   ├── DatabaseHelper.cs             ← SQLite 连接 + 初始化建表',
+    '│   ├── Repositories/',
+    '│   │   ├── AppConfigRepository.cs    ← 配置读写',
+    '│   │   ├── EmailAddressRepository.cs ← 地址增删查改',
+    '│   │   ├── EmailTemplateRepository.cs← 模版增删查改',
+    '│   │   ├── SendTaskRepository.cs     ← 任务增删查改',
+    '│   │   ├── SendRecordRepository.cs   ← 记录增删查改',
+    '│   │   ├── SenderAccountRepository.cs← 账户增删查改',
+    '│   │   └── BlacklistRepository.cs    ← 黑名单增删查改',
+    '│   └── MySqlHelper.cs                ← MySQL 连接（可选）',
+    '│',
+    '├── 📁 EmailSender.Core',
+    '│   ├── EmailSender.Core.csproj',
+    '│   ├── ApiClients/',
+    '│   │   ├── MeetbyApiClient.cs        ← meetby 登录/模版/列表 API',
+    '│   │   └── SendCloudApiClient.cs     ← SendCloud 发送/模版/结果 API',
+    '│   ├── Services/',
+    '│   │   ├── AuthService.cs            ← 登录认证服务',
+    '│   │   ├── TemplateService.cs        ← 模版拉取/同步/AI分析',
+    '│   │   ├── EmailListService.cs       ← 列表下载/清洗/过滤',
+    '│   │   ├── SendTaskService.cs        ← 任务创建/调度/执行',
+    '│   │   ├── SendEngineService.cs      ← 核心发送引擎（多线程）',
+    '│   │   ├── ResultFetchService.cs     ← 主动轮询SendCloud结果',
+    '│   │   ├── BlacklistService.cs       ← 黑名单管理',
+    '│   │   └── AiAnalysisService.cs      ← AI 反垃圾分析',
+    '│   └── Helpers/',
+    '│       ├── EmailValidator.cs         ← 本地格式验证',
+    '│       ├── TemplateRenderer.cs       ← 变量替换引擎',
+    '│       └── OAuthHelper.cs            ← Gmail/Hotmail OAuth 流程',
+    '│',
+    '└── 📁 EmailSender.UI',
+    '    ├── EmailSender.UI.csproj',
+    '    ├── Program.cs                    ← 入口，初始化DB',
+    '    ├── App.config                    ← 应用配置文件',
+    '    ├── Forms/',
+    '    │   ├── LoginForm.cs              ← 登录窗体',
+    '    │   ├── MainForm.cs               ← 主窗体（左侧导航+右侧内容区）',
+    '    │   └── WizardForm.cs             ← 新建任务向导窗体（3步）',
+    '    ├── Controls/',
+    '    │   ├── SendTaskControl.cs        ← 发送任务列表页',
+    '    │   ├── TemplateControl.cs        ← 邮件模版管理页',
+    '    │   ├── EmailListControl.cs       ← 邮件列表管理页',
+    '    │   ├── BlacklistControl.cs       ← 黑名单管理页',
+    '    │   └── SettingsControl.cs        ← 系统配置页（4个Tab）',
+    '    ├── WizardSteps/',
+    '    │   ├── Step1TemplatePanel.cs     ← 向导第1步：选模版',
+    '    │   ├── Step2ListPanel.cs         ← 向导第2步：选列表+清洗',
+    '    │   └── Step3SettingsPanel.cs     ← 向导第3步：发送设置',
+    '    └── Common/',
+    '        ├── UIHelper.cs               ← 通用UI工具',
+    '        └── ServiceLocator.cs         ← 服务实例统一管理',
+]
+add_code_block(file_tree)
+
+# ══════════════════════════════════════════════════════════════
+#  三、各层职责说明
+# ══════════════════════════════════════════════════════════════
+add_heading('三、各层职责说明', 1)
+
+add_heading('3.1  Models 层 — 纯数据模型', 2)
+add_para('原则：只有属性，不含任何逻辑，不引用任何其他层。', bold=True, color=(0x2E,0x74,0xB5))
+add_table(
+    ['文件', '说明'],
+    [
+        ['AppConfig.cs',       'Key-Value 配置，存 meetby Token、AI Key 等'],
+        ['EmailAddress.cs',    '邮件地址 + FirstName/LastName/Company 等联系人字段'],
+        ['EmailTemplate.cs',   '模版内容 + AI评分 + SendCloud同步状态'],
+        ['SendTask.cs',        '发送任务 + 统计字段（总数/成功/失败/打开）'],
+        ['SendRecord.cs',      '每封邮件的发送记录 + ResultFetched 状态'],
+        ['SenderAccount.cs',   '发送账户 + 累计统计 + 暂停状态'],
+        ['Blacklist.cs',       '黑名单 + 类型 + 发送历史统计'],
+        ['Enums.cs',           '所有枚举（任务状态/发送状态/账户类型等）'],
+    ]
+)
+
+add_heading('3.2  Data 层 — 数据访问', 2)
+add_para('原则：只负责读写数据库，不含业务判断。使用 Dapper 作为轻量 ORM。', bold=True, color=(0x2E,0x74,0xB5))
+add_para('DatabaseHelper.cs 核心职责：')
+for item in [
+    '初始化 SQLite 数据库文件',
+    '执行所有建表 SQL（CREATE TABLE IF NOT EXISTS）',
+    '提供 GetConnection() 方法',
+    '使用 Dapper 作为轻量 ORM（比 EF6 更简单直接）',
+]:
+    add_bullet(item)
+add_para('Repository 模式：每张表对应一个 Repository，提供标准方法：')
+add_code_block(['GetById / GetAll / Add / Update / Delete / 特定业务查询'])
+
+add_heading('3.3  Core 层 — 业务逻辑', 2)
+add_para('原则：所有业务判断在这里，UI 层只调用服务，不写逻辑。', bold=True, color=(0x2E,0x74,0xB5))
+
+add_para('MeetbyApiClient.cs', bold=True)
+add_code_block([
+    'Login(username, password)          → 返回 Token',
+    'GetTemplates(token)                → 返回模版列表',
+    'GetEmailLists(token)               → 返回邮件列表',
+    'GetEmailListMembers(token, listId) → 返回邮件地址列表',
+])
+
+add_para('SendCloudApiClient.cs', bold=True)
+add_code_block([
+    'UploadTemplate(template)           → 上传/更新模版到SendCloud',
+    'SendByTemplate(taskConfig)         → 模版发送',
+    'QuerySendLog(startDate, endDate)   → 查询发送日志',
+])
+
+add_para('SendEngineService.cs — 核心发送引擎', bold=True)
+add_code_block([
+    '发送流程：',
+    '1. 读取任务配置（通道/线程数/间隔/重试次数）',
+    '2. 按通道分流：',
+    '   ├── SendCloud → 调用 SendCloudApiClient',
+    '   ├── Gmail    → 调用 OAuthHelper + SmtpClient',
+    '   ├── Hotmail  → 调用 OAuthHelper + SmtpClient',
+    '   └── SMTP     → 直接 SmtpClient + TemplateRenderer 拼内容',
+    '3. 多线程控制（SemaphoreSlim 控制并发数）',
+    '4. 发送间隔控制（Task.Delay）',
+    '5. 失败重试（RetryCount < RetryMax）',
+    '6. 实时更新进度（IProgress<T>）',
+    '7. 支持取消（CancellationToken）',
+])
+
+add_para('ResultFetchService.cs — 结果轮询', bold=True)
+add_code_block([
+    'FetchPendingResults(taskId):',
+    '1. 查询 SendRecord WHERE ResultFetched=0',
+    '2. 取出 SendCloudMsgId 列表',
+    '3. 批量调用 SendCloud /apiv2/log/list',
+    '4. 更新 SendRecord.SendStatus / ResultFetched=1',
+    '5. 汇总更新 SendTask 统计字段',
+])
+
+add_para('AiAnalysisService.cs — AI 分析', bold=True)
+add_code_block([
+    'AnalyzeTemplate(subject, htmlBody):',
+    '1. 构建 Prompt（主题/内容/反垃圾规则）',
+    '2. 调用 DeepSeek / OpenAI API',
+    '3. 解析返回 JSON { score, issues[], suggestions[] }',
+    '4. 保存到 EmailTemplate.AiScore / AiSuggestions',
+])
+
+add_para('EmailListService.cs — 列表清洗', bold=True)
+add_code_block([
+    'DownloadAndSave(listId)            → 下载并去重存库',
+    'FilterBlacklist()                  → 过滤黑名单',
+    'FilterByFailCount(minFail)         → 按失败次数过滤',
+    'FilterSent()                       → 过滤已发送',
+    'FilterSentThisWeek()               → 过滤本周已发',
+    'VerifyWithZeroBounce(emails)       → 调用ZeroBounce批量验证',
+    'GetDomainStats()                   → 返回域名分布统计',
+])
+
+add_heading('3.4  UI 层 — 界面展示', 2)
+add_para('原则：不写业务逻辑，只调用 Core 层服务，只负责展示和交互。', bold=True, color=(0x2E,0x74,0xB5))
+add_table(
+    ['文件', '职责'],
+    [
+        ['LoginForm',           '输入账号密码 → 调用 AuthService → 跳转主窗体'],
+        ['MainForm',            '左侧导航菜单 + 右侧 Panel 动态加载 UserControl'],
+        ['SendTaskControl',     '任务列表 DataGridView + 新建/启动/刷新结果按钮'],
+        ['TemplateControl',     '模版列表 + WebBrowser 预览 + AI分析面板 + 同步按钮'],
+        ['EmailListControl',    '列表选择 + 清洗工具栏 + 域名统计'],
+        ['BlacklistControl',    '黑名单查看/手动添加/导出'],
+        ['SettingsControl',     '4个Tab：SendCloud/Gmail/Hotmail/SMTP账户管理'],
+        ['WizardForm',          '3步向导容器，管理步骤切换和数据传递'],
+        ['Step1TemplatePanel',  '模版选择 + 预览 + AI优化'],
+        ['Step2ListPanel',      '列表选择 + 清洗过滤 + 实时统计'],
+        ['Step3SettingsPanel',  '发送时间/间隔/线程/通道设置'],
+    ]
+)
+
+# ══════════════════════════════════════════════════════════════
+#  四、关键数据流图
+# ══════════════════════════════════════════════════════════════
+add_heading('四、关键数据流图', 1)
+
+add_heading('4.1  新建任务完整流程', 2)
+add_code_block([
+    '用户点击[新建任务]',
+    '    │',
+    '    ▼',
+    'Step1: 选模版',
+    '    ├── MeetbyApiClient.GetTemplates()',
+    '    ├── 本地预览 WebBrowser',
+    '    ├── [AI分析] → AiAnalysisService → 显示评分',
+    '    ├── [修改]   → 本地保存，标记 NeedResync=1',
+    '    └── [同步到SendCloud] → SendCloudApiClient.UploadTemplate()',
+    '                           标记 SyncedToSendCloud=1',
+    '    │',
+    '    ▼',
+    'Step2: 选邮件列表',
+    '    ├── MeetbyApiClient.GetEmailLists()',
+    '    ├── [下载]      → EmailListService.DownloadAndSave()',
+    '    ├── [验证无效]  → ZeroBounce API → 更新 VerifyStatus',
+    '    ├── [去黑名单]  → BlacklistService.Filter()',
+    '    ├── [去失败N次] → EmailListService.FilterByFailCount()',
+    '    ├── [去已发送]  → EmailListService.FilterSent()',
+    '    ├── [去本周已发]→ EmailListService.FilterSentThisWeek()',
+    '    └── 实时显示: 剩余数量 + 域名分布',
+    '    │',
+    '    ▼',
+    'Step3: 发送设置',
+    '    ├── 选择发送时间（立即/定时）',
+    '    ├── 设置间隔/线程数/重试次数',
+    '    ├── 选择发送通道（SendCloud/Gmail/Hotmail/SMTP）',
+    '    └── [确认创建任务]',
+    '    │',
+    '    ▼',
+    '任务写入 SendTask 表，状态: Pending',
+])
+
+add_heading('4.2  发送执行流程', 2)
+add_code_block([
+    'SendTaskService.ExecuteTask(taskId)',
+    '    │',
+    '    ├── 读取任务配置',
+    '    ├── 读取过滤后的邮件地址列表',
+    '    ├── 初始化 SemaphoreSlim(threadCount)',
+    '    │',
+    '    ├── foreach email in list:',
+    '    │       ├── await semaphore.WaitAsync()',
+    '    │       ├── 按通道分流发送',
+    '    │       │     ├── SendCloud: 提交模版发送请求',
+    '    │       │     ├── Gmail/Hotmail: OAuth Token → SmtpClient',
+    '    │       │     └── SMTP: TemplateRenderer拼内容 → SmtpClient',
+    '    │       ├── 写入 SendRecord（Status=Sent/Failed）',
+    '    │       ├── await Task.Delay(interval)',
+    '    │       └── semaphore.Release()',
+    '    │',
+    '    └── 更新 SendTask.Status = Done',
+])
+
+add_heading('4.3  结果刷新流程', 2)
+add_code_block([
+    'ResultFetchService.FetchPendingResults(taskId)',
+    '    │',
+    '    ├── SELECT * FROM SendRecord',
+    '    │   WHERE TaskId=? AND ResultFetched=0  LIMIT 100',
+    '    │',
+    '    ├── 提取 SendCloudMsgId 列表',
+    '    │',
+    '    ├── 调用 SendCloud GET /apiv2/log/list',
+    '    │   参数: msgIds / 时间范围',
+    '    │',
+    '    ├── 逐条更新 SendRecord:',
+    '    │   ├── SendStatus = Delivered/Opened/Bounced...',
+    '    │   ├── ResultFetched = 1',
+    '    │   └── FetchedAt = Now',
+    '    │',
+    '    ├── 汇总统计写回 SendTask:',
+    '    │   ├── SuccessCount / FailCount / OpenCount',
+    '    │   └── 各百分比',
+    '    │',
+    '    └── 刷新 UI DataGridView 显示',
+])
+
+# ══════════════════════════════════════════════════════════════
+#  五、NuGet 包依赖清单
+# ══════════════════════════════════════════════════════════════
+add_heading('五、NuGet 包依赖清单', 1)
+add_table(
+    ['包名', '版本', '用途'],
+    [
+        ['System.Data.SQLite',                  '1.0.118', 'SQLite 数据库驱动'],
+        ['Dapper',                               '2.1.35',  '轻量 ORM，SQL映射'],
+        ['Newtonsoft.Json',                      '13.0.3',  'JSON 序列化/反序列化'],
+        ['MySql.Data',                           '8.3.0',   'MySQL 连接（可选）'],
+        ['Microsoft.AspNet.WebApi.Client',       '5.3.0',   'HttpClient 扩展'],
+    ]
+)
+add_para('✅ 不引入 EF6，用 Dapper 更轻量、SQL 更直观、单人开发更好控制。',
+         bold=True, color=(0x1F,0x7A,0x3C))
+
+# ══════════════════════════════════════════════════════════════
+#  六、枚举定义
+# ══════════════════════════════════════════════════════════════
+add_heading('六、枚举定义（Enums.cs）', 1)
+add_code_block([
+    '// 发送任务状态',
+    'public enum TaskStatus   { Pending, Running, Paused, Done, Failed }',
+    '',
+    '// 发送记录状态',
+    'public enum SendStatus   { Pending, Sent, Delivered, Opened,',
+    '                           Clicked, Bounced, Failed, Spam }',
+    '',
+    '// 发送通道',
+    'public enum SendChannel  { SendCloud, Gmail, Hotmail, SMTP }',
+    '',
+    '// 账户类型',
+    'public enum AccountType  { SendCloud, Gmail, Hotmail, SMTP }',
+    '',
+    '// 邮件地址验证状态',
+    'public enum VerifyStatus { Unknown, Valid, Invalid, CatchAll, SpamTrap }',
+    '',
+    '// 黑名单类型',
+    'public enum BlacklistType{ Manual, HardBounce, SpamReport,',
+    '                           Unsubscribe, RepeatedFail, Invalid }',
+])
+
+# ══════════════════════════════════════════════════════════════
+#  七、App.config 配置项
+# ══════════════════════════════════════════════════════════════
+add_heading('七、App.config 配置项', 1)
+add_code_block([
+    '<appSettings>',
+    '  <!-- meetby 服务器 -->',
+    '  <add key="MeetbyBaseUrl"      value="http://ems.meetby.net" />',
+    '',
+    '  <!-- SendCloud -->',
+    '  <add key="SendCloudApiUrl"    value="https://api.sendcloud.net/apiv2" />',
+    '',
+    '  <!-- ZeroBounce 邮件验证 -->',
+    '  <add key="ZeroBounceApiUrl"   value="https://api.zerobounce.net/v2" />',
+    '',
+    '  <!-- AI 分析 -->',
+    '  <add key="AiApiUrl"           value="https://api.deepseek.com/v1" />',
+    '  <add key="AiModel"            value="deepseek-chat" />',
+    '',
+    '  <!-- 本地数据库 -->',
+    '  <add key="DbFileName"         value="emailsender.db" />',
+    '',
+    '  <!-- 发送默认参数 -->',
+    '  <add key="DefaultBatchSize"   value="50" />',
+    '  <add key="DefaultInterval"    value="5" />',
+    '  <add key="DefaultThreadCount" value="3" />',
+    '  <add key="DefaultRetryMax"    value="3" />',
+    '</appSettings>',
+])
+
+# ══════════════════════════════════════════════════════════════
+#  八、界面原型说明
+# ══════════════════════════════════════════════════════════════
+add_heading('八、界面原型说明', 1)
+
+add_heading('8.1  主窗体布局', 2)
+add_code_block([
+    '┌──────────────────────────────────────────────────────────────┐',
+    '│ 📧 Email Sender v1.0        登录: sean@meetby.net  [退出登录] │',
+    '├────────────┬─────────────────────────────────────────────────┤',
+    '│            │                                                 │',
+    '│ ▶ 发送任务  │                                                 │',
+    '│            │         右侧内容区                               │',
+    '│   邮件模版  │    （根据左侧菜单动态切换 UserControl）            │',
+    '│            │                                                 │',
+    '│   邮件列表  │                                                 │',
+    '│            │                                                 │',
+    '│   黑名单   │                                                 │',
+    '│            │                                                 │',
+    '│   系统配置  │                                                 │',
+    '│ ─────────  │                                                 │',
+    '│ 今日已发:   │                                                 │',
+    '│ 238 封     │                                                 │',
+    '│ 成功率:    │                                                 │',
+    '│ 97.5%      │                                                 │',
+    '└────────────┴─────────────────────────────────────────────────┘',
+])
+
+add_heading('8.2  发送任务列表', 2)
+add_code_block([
+    '[+ 新建任务]                              [刷新发送结果] [🔄]',
+    '┌──────┬──────┬──────┬──────┬──────┬──────┬──────┬──────┬──────┐',
+    '│任务名 │模版  │列表  │计划时间│状态  │总数  │成功  │失败  │打开  │',
+    '├──────┼──────┼──────┼──────┼──────┼──────┼──────┼──────┼──────┤',
+    '│5月活动│sean-1│VIP客户│05-06 │✅完成│3,000 │2,847 │153  │ 892  │',
+    '│      │      │      │09:00 │      │      │94.9% │5.1% │31.4% │',
+    '├──────┼──────┼──────┼──────┼──────┼──────┼──────┼──────┼──────┤',
+    '│新品发布│pro-2│全部  │立即  │🔄发送│1,500 │ 823  │ 12  │  -   │',
+    '│      │      │      │      │      │      │54.9% │0.8% │  -   │',
+    '└──────┴──────┴──────┴──────┴──────┴──────┴──────┴──────┴──────┘',
+])
+
+# ══════════════════════════════════════════════════════════════
+#  九、开发阶段与时间估算
+# ══════════════════════════════════════════════════════════════
+add_heading('九、开发阶段与时间估算', 1)
+add_table(
+    ['阶段', '内容', '预估时间'],
+    [
+        ['第一阶段', '项目结构 + DB初始化 + 登录 + 主窗体导航',           '3-4 天'],
+        ['第二阶段', '模版管理 + AI分析 + SendCloud同步',                 '4-5 天'],
+        ['第三阶段', '邮件列表下载 + 清洗工具栏 + ZeroBounce',             '3-4 天'],
+        ['第四阶段', '新建任务向导（3步）+ 发送引擎',                      '5-7 天'],
+        ['第五阶段', '结果轮询 + 统计更新 + 黑名单自动管理',               '3-4 天'],
+        ['第六阶段', 'Gmail/Hotmail OAuth + SMTP账户',                   '3-4 天'],
+        ['第七阶段', '联调测试 + Bug修复 + 打包发布',                     '3-5 天'],
+        ['合计',    '',                                                  '约 4-5 周'],
+    ]
+)
+
+# ══════════════════════════════════════════════════════════════
+#  十、开发顺序建议
+# ══════════════════════════════════════════════════════════════
+add_heading('十、开发顺序建议', 1)
+add_code_block([
+    '第1天: 建Solution → 4个项目 → 安装NuGet包 → 配置项目引用',
+    '第2天: Models层全部写完 → Enums.cs → DatabaseHelper建表',
+    '第3天: 所有Repository写完 → 单元测试数据读写',
+    '第4天: LoginForm + AuthService + MeetbyApiClient登录',
+    '第5天: MainForm导航框架 + ServiceLocator',
+    '第6天: TemplateControl + MeetbyApiClient.GetTemplates()',
+    '第7天: AiAnalysisService + SendCloudApiClient.UploadTemplate()',
+    '第8天: EmailListControl + EmailListService 清洗功能',
+    '第9天: WizardForm + Step1/2/3 Panel',
+    '第10天: SendEngineService 核心发送引擎',
+    '第11天: ResultFetchService 结果轮询',
+    '第12天: BlacklistService 自动管理',
+    '第13天: Gmail/Hotmail OAuth 接入',
+    '第14天+: 联调测试 + 打包',
+])
+
+add_para('')
+add_para('📌 计划书版本：v2.0    生成日期：2026-05-05', bold=True, color=(0x70,0x70,0x70))
+
+# ── 保存 ──────────────────────────────────────────────────────
+output_path = 'EmailSender_开发计划书_v2.0.docx'
+doc.save(output_path)
+print(f'✅ 文档已生成：{output_path}')

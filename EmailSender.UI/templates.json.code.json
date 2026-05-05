@@ -1,0 +1,37 @@
+{
+  "code": 0,
+  "message": "ok",
+  "data": {
+    "total": 3,
+    "page": 1,
+    "list": [
+      {
+        "id": 1,
+        "name": "外贸开发信-英文版",
+        "subject": "Cooperation Opportunity - {CompanyName}",
+        "html_body": "<p>Dear {ContactName},</p><p>We are a professional manufacturer specializing in high-quality industrial equipment.</p><p>We'd love to explore cooperation opportunities with <b>{CompanyName}</b>.</p><p>Please feel free to contact us for a catalog or samples.</p><p>Best regards,<br/>{SenderName}</p>",
+        "variables": ["ContactName", "CompanyName", "SenderName"],
+        "created_at": "2026-04-25T10:00:00Z",
+        "updated_at": "2026-04-25T10:00:00Z"
+      },
+      {
+        "id": 2,
+        "name": "产品推广-中文版",
+        "subject": "【新品推荐】{ProductName} 现已上市",
+        "html_body": "<p>尊敬的 {ContactName}，</p><p>您好！我们最新推出了 <b>{ProductName}</b>，性能卓越，价格优惠。</p><p>欢迎垂询，期待与贵司合作！</p><p>此致<br/>{SenderName}</p>",
+        "variables": ["ContactName", "ProductName", "SenderName"],
+        "created_at": "2026-04-28T09:00:00Z",
+        "updated_at": "2026-04-28T09:00:00Z"
+      },
+      {
+        "id": 3,
+        "name": "展会邀请函",
+        "subject": "Invitation to Visit Us at Canton Fair 2026",
+        "html_body": "<p>Dear {ContactName},</p><p>We sincerely invite you to visit our booth at <b>Canton Fair 2026</b>.</p><p>📍 Booth No: <b>Hall 10, A23</b><br/>📅 Date: April 15-19, 2026</p><p>We look forward to meeting you!</p><p>Best regards,<br/>{SenderName}<br/>{CompanyName}</p>",
+        "variables": ["ContactName", "SenderName", "CompanyName"],
+        "created_at": "2026-04-30T14:00:00Z",
+        "updated_at": "2026-04-30T14:00:00Z"
+      }
+    ]
+  }
+}
