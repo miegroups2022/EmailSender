@@ -4,10 +4,19 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+
 using Newtonsoft.Json.Linq;
+
+
 using EmailSender.Data.Repositories;
 using EmailSender.Models;
+
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using MimeKit;
+
 
 namespace EmailSender.Core.Helpers
 {
@@ -16,7 +25,7 @@ namespace EmailSender.Core.Helpers
     /// 支持：Gmail (Google OAuth 2.0) / Hotmail (Microsoft OAuth 2.0)
     /// 流程：GenerateAuthUrl → 浏览器授权 → 本地回调监听 → 换Token → 自动刷新
     /// </summary>
-    public class OAuthHelper
+    public class EmailHelper
     {
         private readonly HttpClient              _http = new HttpClient();
         private readonly SenderAccountRepository _accountRepo;
@@ -34,7 +43,7 @@ namespace EmailSender.Core.Helpers
         private const string RedirectUri    = "http://localhost:9988/callback";
 
         // ✅ 新增：构造函数
-        public OAuthHelper(SenderAccountRepository accountRepo, AppConfigRepository configRepo)
+        public EmailHelper(SenderAccountRepository accountRepo, AppConfigRepository configRepo)
         {
             _accountRepo = accountRepo;
             _configRepo = configRepo;
@@ -160,7 +169,7 @@ namespace EmailSender.Core.Helpers
             // Token 还有 5 分钟以上有效期，直接返回
             if (account.TokenExpiresAt.HasValue &&
                 account.TokenExpiresAt.Value > DateTime.Now.AddMinutes(5))
-                return account.OAuthToken;
+                return account.OAuthTokenJson;
 
             if (string.IsNullOrEmpty(account.OAuthRefreshToken))
                 throw new Exception("账户 [" + account.Name + "] 的 Refresh Token 为空，请重新授权");
@@ -223,7 +232,7 @@ namespace EmailSender.Core.Helpers
                 ?? throw new Exception("账户 " + accountId + " 不存在");
 
             if (tokenData.ContainsKey("access_token"))
-                account.OAuthToken = tokenData["access_token"];
+                account.OAuthTokenJson = tokenData["access_token"];
 
             if (tokenData.ContainsKey("refresh_token"))
                 account.OAuthRefreshToken = tokenData["refresh_token"];
@@ -238,4 +247,118 @@ namespace EmailSender.Core.Helpers
             _accountRepo.Update(account);
         }
     }
+
+
+    /// <summary>
+    /// // ── SMTP 测试 ──────────────────────────────────────────
+    /// </summary>
+    public static class SmtpHelper
+    {
+        
+        public static async Task TestSmtpAsync(SenderAccount account, Action<string> callback)
+        {
+            try
+            {
+                // Gmail OAuth2
+                if (account.IsOAuthAuthorized && (MailProvider)account.Provider == MailProvider.Gmail)
+                {
+                    await GmailOAuthService.TestAsync(account, callback);
+                    return;
+                }
+
+                // Outlook OAuth2
+                if (account.IsOAuthAuthorized && (MailProvider)account.Provider == MailProvider.Outlook)
+                {
+                    await OutlookOAuthService.TestAsync(account, callback);
+                    return;
+                }
+
+                // 普通 SMTP
+                using var client = new SmtpClient();
+                var secureOption = account.SmtpUseSsl
+                    ? SecureSocketOptions.SslOnConnect
+                    : SecureSocketOptions.StartTlsWhenAvailable;
+
+                await client.ConnectAsync(account.SmtpHost, account.SmtpPort, secureOption);
+                await client.AuthenticateAsync(account.SmtpUser, account.SmtpPassword);
+
+                var msg = new MimeMessage();
+                msg.From.Add(new MailboxAddress(account.SmtpFromName, account.SmtpFromEmail));
+                msg.To.Add(new MailboxAddress(account.SmtpFromName, account.SmtpFromEmail));
+                msg.Subject = "外贸通 SMTP 测试邮件";
+                msg.Body = new TextPart("plain") { Text = "SMTP配置测试成功！" };
+
+                await client.SendAsync(msg);
+                await client.DisconnectAsync(true);
+                callback("? 测试成功！SMTP配置正确。");
+            }
+            catch (Exception ex)
+            {
+                callback($"? 测试失败：{ex.Message}");
+            }
+        }
+
+    }
+
+
+    /// <summary>
+    /// 统一邮件构建：占位符替换 + HTML/纯文本双正文 + Reply-To
+    /// </summary>
+    public static class MailMessageBuilder
+    {
+        public static MimeMessage Build(
+            string fromName, string fromEmail,
+            string toName, string toEmail,
+            string subject, string htmlBody,
+            string unsubscribeUrl = null)
+        {
+            string firstName = string.IsNullOrWhiteSpace(toName)
+                ? "" : toName.Split(' ')[0].Trim();
+
+            htmlBody = Replace(htmlBody, firstName, toName, fromName, unsubscribeUrl);
+            subject = Replace(subject, firstName, toName, fromName, unsubscribeUrl);
+
+            var msg = new MimeMessage();
+            msg.From.Add(new MailboxAddress(fromName, fromEmail));
+            msg.ReplyTo.Add(new MailboxAddress(fromName, fromEmail)); // ← 避免发件人异常
+            msg.To.Add(new MailboxAddress(toName, toEmail));
+            msg.Subject = subject;
+
+            // ← 双正文：纯文本备用，大幅提升送达率
+            msg.Body = new BodyBuilder
+            {
+                HtmlBody = htmlBody,
+                TextBody = ToPlainText(htmlBody)
+            }.ToMessageBody();
+
+            return msg;
+        }
+
+        private static string Replace(string text, string firstName,
+            string companyName, string senderName, string unsubUrl)
+        {
+            if (string.IsNullOrEmpty(text)) return text;
+            return text
+                .Replace("{FirstName}", firstName ?? "")
+                .Replace("{CompanyName}", companyName ?? "")
+                .Replace("{SenderName}", senderName ?? "")
+                .Replace("{UnsubscribeUrl}", unsubUrl ?? "#");
+        }
+
+        private static string ToPlainText(string html)
+        {
+            if (string.IsNullOrEmpty(html)) return "";
+            var t = Regex.Replace(html,
+                @"<(style|script)[^>]*>[\s\S]*?</(style|script)>", "",
+                RegexOptions.IgnoreCase);
+            t = Regex.Replace(t,
+                @"<br\s*/?>|</p>|</tr>|</div>", "\n", RegexOptions.IgnoreCase);
+            t = Regex.Replace(t, @"<[^>]+>", "");
+            t = t.Replace("&amp;", "&").Replace("&lt;", "<")
+                 .Replace("&gt;", ">").Replace("&nbsp;", " ")
+                 .Replace("&#39;", "'").Replace("&quot;", "\"");
+            return Regex.Replace(t, @"\n{3,}", "\n\n").Trim();
+        }
+    }
+
 }

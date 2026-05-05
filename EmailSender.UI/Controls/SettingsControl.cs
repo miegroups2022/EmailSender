@@ -53,7 +53,7 @@ namespace EmailSender.UI.Controls
         // ── 保存 ───────────────────────────────────────────────
         private void btnSave_Click(object sender, EventArgs e)
         {
-            var cfg = ServiceLocator.co;
+            var cfg = ServiceLocator.configRepository;
 
             cfg.Set("MeetbyBaseUrl",       txtMeetbyUrl.Text.Trim());
             cfg.Set("SendCloudApiUrl",     txtSendCloudUrl.Text.Trim());

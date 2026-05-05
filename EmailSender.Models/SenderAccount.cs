@@ -25,9 +25,11 @@ namespace EmailSender.Models
 
         // Gmail / Hotmail OAuth
         public string      OAuthEmail      { get; set; }
-        public string      OAuthToken      { get; set; }   // 加密存储
+        public string      OAuthTokenJson      { get; set; }   // 加密存储
         public string      OAuthRefreshToken { get; set; } // 加密存储
         public DateTime?   TokenExpiresAt  { get; set; }
+
+        //public string OAuthTokenJson { get; set; }       // OAuth2 token JSON（Gmail/Outlook）
 
 
         // ✅ 新增：OAuth 授权状态

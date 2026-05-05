@@ -1,11 +1,12 @@
-﻿using System;
+﻿using EmailSender.Core;
+using EmailSender.Core.Helpers;
+using EmailSender.Core.Services;
+using EmailSender.Models;
+using System;
+using System.ComponentModel;
 using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.ComponentModel;
-using EmailSender.Core.Services;
-using EmailSender.Models;
-using EmailSender.Core;
 
 namespace EmailSender.UI.Forms
 {
@@ -48,14 +49,14 @@ namespace EmailSender.UI.Forms
         private void PopulateProviderCombo()
         {
             cmbProvider.Items.Clear();
-            foreach (AccountType p in Enum.GetValues<AccountType>())
+            foreach (MailProvider p in Enum.GetValues<AccountType>())
                 cmbProvider.Items.Add(MailProviderConfigs.Configs[p].DisplayName);
         }
 
         private void cmbProvider_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (cmbProvider.SelectedIndex < 0) return;
-            var provider = (AccountType)cmbProvider.SelectedIndex;
+            var provider = (MailProvider)cmbProvider.SelectedIndex;
             var cfg = MailProviderConfigs.Configs[provider];
 
             txtHost.Text         = cfg.SmtpHost;
@@ -146,7 +147,7 @@ namespace EmailSender.UI.Forms
             lblGuide.Text         = "已打开浏览器，请登录微软账号并点击「接受」，完成后本窗口将自动更新。";
 
             var (ok, email, tempKey, tokenJson, error) =
-                await WaimaoTong.Services.OutlookOAuthService.AuthorizeAsync();
+                await EmailSender.Core.Helpers.OutlookOAuthService.AuthorizeAsync();
 
             if (ok)
             {
@@ -214,7 +215,7 @@ namespace EmailSender.UI.Forms
 
             var accountKey = $"acc_new_{DateTime.Now.Ticks}";
             var (ok, email, tokenJson, error) =
-                await WaimaoTong.Services.GmailOAuthService.AuthorizeAsync(accountKey);
+                await EmailSender.Core.Helpers.GmailOAuthService.AuthorizeAsync(accountKey);
 
             if (ok)
             {
@@ -283,7 +284,7 @@ namespace EmailSender.UI.Forms
                 return;
             }
 
-            await EmailService.TestSmtpAsync(Account, msg =>
+            await SmtpHelper.TestSmtpAsync(Account, msg =>
             {
                 this.BeginInvoke((Action)(() =>
                 {

@@ -64,7 +64,7 @@ namespace EmailSender.UI.Common
 
 
         // 辅助工具
-        public static OAuthHelper oAuthHelper { get; private set; }
+        public static EmailHelper oAuthHelper { get; private set; }
         public static TemplateRenderer templateRenderer { get; private set; }
         
 
@@ -107,7 +107,7 @@ namespace EmailSender.UI.Common
 
 
          // 4. 初始化辅助工具
-         oAuthHelper = new OAuthHelper(senderAccountRepository, configRepository);
+         oAuthHelper = new EmailHelper(senderAccountRepository, configRepository);
             templateRenderer = new TemplateRenderer();
 
         }

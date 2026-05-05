@@ -14,13 +14,13 @@ namespace EmailSender.Data.Repositories
                 return conn.ExecuteScalar<int>(@"
                     INSERT INTO SenderAccount
                         (Name,AccountType,ApiUser,ApiKey,
-                         OAuthEmail,OAuthToken,OAuthRefreshToken,TokenExpiresAt,
+                         OAuthEmail,OAuthTokenJson,OAuthRefreshToken,TokenExpiresAt,
                          SmtpHost,SmtpPort,SmtpUseSsl,SmtpUser,SmtpPassword,
                          SmtpFromEmail,SmtpFromName,IsActive,IsPaused,DailyLimit,
                          CreatedAt,UpdatedAt)
                     VALUES
                         (@Name,@AccountType,@ApiUser,@ApiKey,
-                         @OAuthEmail,@OAuthToken,@OAuthRefreshToken,@TokenExpiresAt,
+                         @OAuthEmail,@OAuthTokenJson,@OAuthRefreshToken,@TokenExpiresAt,
                          @SmtpHost,@SmtpPort,@SmtpUseSsl,@SmtpUser,@SmtpPassword,
                          @SmtpFromEmail,@SmtpFromName,@IsActive,@IsPaused,@DailyLimit,
                          datetime('now','localtime'),datetime('now','localtime'));
@@ -36,7 +36,7 @@ namespace EmailSender.Data.Repositories
                 conn.Execute(@"
                     UPDATE SenderAccount SET
                         Name=@Name, ApiUser=@ApiUser, ApiKey=@ApiKey,
-                        OAuthEmail=@OAuthEmail, OAuthToken=@OAuthToken,
+                        OAuthEmail=@OAuthEmail, OAuthTokenJson=@OAuthTokenJson,
                         OAuthRefreshToken=@OAuthRefreshToken,
                         TokenExpiresAt=@TokenExpiresAt,
                         SmtpHost=@SmtpHost, SmtpPort=@SmtpPort,

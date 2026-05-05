@@ -1,3 +1,6 @@
+using EmailSender.Models;
+using MailKit.Security;
+using MimeKit;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -107,4 +110,5 @@ namespace EmailSender.Core.Helpers
             return free.Contains(domain);
         }
     }
+
 }

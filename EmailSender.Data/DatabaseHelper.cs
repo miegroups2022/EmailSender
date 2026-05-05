@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS SenderAccount (
     ApiUser           TEXT,
     ApiKey            TEXT,
     OAuthEmail        TEXT,
-    OAuthToken        TEXT,
+    OAuthTokenJson        TEXT,
     OAuthRefreshToken TEXT,
     TokenExpiresAt    TEXT,
     SmtpHost          TEXT,

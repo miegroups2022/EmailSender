@@ -176,7 +176,7 @@ namespace EmailSender.Core.Services
                 client.EnableSsl             = true;
                 client.UseDefaultCredentials = false;
                 client.Credentials           = new NetworkCredential(
-                    account.OAuthEmail, account.OAuthToken);
+                    account.OAuthEmail, account.OAuthTokenJson);
 
                 var msg = BuildMailMessage(task, account, addr);
                 await client.SendMailAsync(msg);
