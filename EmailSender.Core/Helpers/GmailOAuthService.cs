@@ -7,9 +7,13 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using EmailSender.Models;
+
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Responses;
+using Google.Apis.Gmail.v1;              // ✅ 添加这行
+using Google.Apis.Gmail.v1.Data;         // ✅ 添加这行
+
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
 

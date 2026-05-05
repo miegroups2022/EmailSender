@@ -21,6 +21,8 @@
 
 
     <!-- HTTP 客户端 -->
+    <PackageReference Include="Google.Apis.Auth" Version="1.68.0" />
+    <PackageReference Include="Google.Apis.Gmail.v1" Version="1.68.0.3427" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   
     <!-- 异步接口（统一版本） -->
@@ -33,8 +35,6 @@
     <PackageReference Include="MimeKit" Version="4.16.0" />
   
    <!-- OAuth / Google -->
-    <PackageReference Include="Google.Apis.Auth" Version="1.68.0" />
-    <PackageReference Include="Google.Apis.Gmail.v1" Version="1.68.0.3600" />
 
     <!-- 加密 -->
     <PackageReference Include="BouncyCastle.Cryptography" Version="2.6.2" />
