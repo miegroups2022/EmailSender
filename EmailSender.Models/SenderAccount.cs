@@ -48,5 +48,18 @@ namespace EmailSender.Models
         public int IntervalMin { get; set; }       // 发送间隔最小秒
         public int IntervalMax { get; set; }       // 发送间隔最大秒
         public bool NeedVpn { get; set; }       // 是否需要VPN
+
+
+        // ✅ 新增：OAuth 授权状态
+        public bool IsOAuthAuthorized { get; set; } = false;
+
+        // ✅ 新增：发件域名（从 SmtpFromEmail 自动提取）
+        public string SenderDomain =>
+            string.IsNullOrEmpty(SmtpFromEmail) || !SmtpFromEmail.Contains('@')
+                ? ""
+                : SmtpFromEmail.Split('@')[1].ToLowerInvariant();
+
+
+
     }
 }

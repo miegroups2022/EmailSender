@@ -9,6 +9,7 @@ namespace EmailSender.Models
     {
         public int        Id           { get; set; }
         public int        ListId       { get; set; }   // 所属列表ID（meetby listId）
+        public int GroupId { get; set; }   // ✅ 新增：分组ID
         public string     ListName     { get; set; }   // 列表名称（冗余，方便显示）
         public string     Email        { get; set; }
         public string     FirstName    { get; set; }

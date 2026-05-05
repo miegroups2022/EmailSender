@@ -30,7 +30,7 @@ namespace EmailSender.Models
         public string      FilterConfig    { get; set; }
 
         // 状态
-        public TaskStatus  Status          { get; set; } = TaskStatus.Pending;
+        public SendTaskStatus  Status          { get; set; } = SendTaskStatus.Pending;
         public DateTime?   StartedAt       { get; set; }
         public DateTime?   FinishedAt      { get; set; }
 

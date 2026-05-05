@@ -1,7 +1,7 @@
 namespace EmailSender.Models
 {
     /// <summary>发送任务状态</summary>
-    public enum TaskStatus
+    public enum SendTaskStatus
     {
         Pending  = 0,   // 待执行
         Running  = 1,   // 执行中

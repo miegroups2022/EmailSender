@@ -33,24 +33,7 @@ namespace EmailSender.Core.Helpers
         private const int    CallbackPort   = 9988;
         private const string RedirectUri    = "http://localhost:9988/callback";
 
-        // 在 SenderAccount.cs 中补充以下字段（不重复定义已有的）
 
-        // OAuth 授权状态标志（OAuthHelper 判断是否需要重新授权时用）
-        public bool IsOAuthAuthorized { get; set; } = false;
-
-        // 发件域名（用于 MailSenderFactory 按域名轮询，可用计算属性）
-        public string SenderDomain =>
-            string.IsNullOrEmpty(SmtpFromEmail) || !SmtpFromEmail.Contains('@')
-                ? ""
-                : SmtpFromEmail.Split('@')[1].ToLowerInvariant();
-
-
-        public OAuthHelper(SenderAccountRepository accountRepo,
-                           AppConfigRepository configRepo)
-        {
-            _accountRepo = accountRepo;
-            _configRepo  = configRepo;
-        }
 
         // ── 1. 生成授权 URL ────────────────────────────────────
 

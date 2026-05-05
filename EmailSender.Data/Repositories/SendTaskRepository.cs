@@ -27,7 +27,7 @@ namespace EmailSender.Data.Repositories
             }
         }
 
-        public void UpdateStatus(int id, TaskStatus status)
+        public void UpdateStatus(int id, SendTaskStatus status)
         {
             using (var conn = DatabaseHelper.GetConnection())
             {

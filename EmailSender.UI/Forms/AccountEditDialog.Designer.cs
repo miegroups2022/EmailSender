@@ -64,13 +64,13 @@ namespace EmailSender.UI.Forms
             pnlVpnTip.SuspendLayout();
             pnlSmtp.SuspendLayout();
             tblSmtp.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)nudPort).BeginInit();
+            ((ISupportInitialize)nudPort).BeginInit();
             pnlOAuth.SuspendLayout();
             grpAdvanced.SuspendLayout();
             tblAdvanced.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)nudDailyLimit).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)nudIntervalMin).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)nudIntervalMax).BeginInit();
+            ((ISupportInitialize)nudDailyLimit).BeginInit();
+            ((ISupportInitialize)nudIntervalMin).BeginInit();
+            ((ISupportInitialize)nudIntervalMax).BeginInit();
             pnlBtns.SuspendLayout();
             SuspendLayout();
             // 
@@ -566,13 +566,13 @@ namespace EmailSender.UI.Forms
             pnlSmtp.ResumeLayout(false);
             tblSmtp.ResumeLayout(false);
             tblSmtp.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)nudPort).EndInit();
+            ((ISupportInitialize)nudPort).EndInit();
             pnlOAuth.ResumeLayout(false);
             grpAdvanced.ResumeLayout(false);
             tblAdvanced.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)nudDailyLimit).EndInit();
-            ((System.ComponentModel.ISupportInitialize)nudIntervalMin).EndInit();
-            ((System.ComponentModel.ISupportInitialize)nudIntervalMax).EndInit();
+            ((ISupportInitialize)nudDailyLimit).EndInit();
+            ((ISupportInitialize)nudIntervalMin).EndInit();
+            ((ISupportInitialize)nudIntervalMax).EndInit();
             pnlBtns.ResumeLayout(false);
             ResumeLayout(false);
         }

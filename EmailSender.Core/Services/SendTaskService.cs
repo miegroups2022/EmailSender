@@ -6,7 +6,7 @@ using EmailSender.Data.Repositories;
 using EmailSender.Models;
 
 // ✅ 添加这一行，给自定义枚举起别名
-using TaskStatus = EmailSender.Models.TaskStatus;
+using SendTaskStatus = EmailSender.Models.SendTaskStatus;
 
 namespace EmailSender.Core.Services
 {
@@ -37,7 +37,7 @@ namespace EmailSender.Core.Services
         /// <summary>创建新任务</summary>
         public int CreateTask(SendTask task)
         {
-            task.Status    = TaskStatus.Pending;
+            task.Status    = SendTaskStatus.Pending;
             task.CreatedAt = DateTime.Now;
             task.UpdatedAt = DateTime.Now;
             task.Id        = _taskRepo.Add(task);
@@ -52,7 +52,7 @@ namespace EmailSender.Core.Services
             var task = _taskRepo.GetById(taskId)
                 ?? throw new Exception($"任务 {taskId} 不存在");
 
-            if (task.Status == TaskStatus.Running)
+            if (task.Status == SendTaskStatus.Running)
                 throw new Exception("任务已在运行中");
 
             // 获取过滤后的邮件列表
@@ -63,7 +63,7 @@ namespace EmailSender.Core.Services
                 excludeTaskId: taskId);
 
             task.TotalCount = emails.Count;
-            _taskRepo.UpdateStatus(taskId, TaskStatus.Running);
+            _taskRepo.UpdateStatus(taskId, SendTaskStatus.Running);
 
             var cts = new CancellationTokenSource();
             _runningTasks[taskId] = cts;
@@ -71,15 +71,15 @@ namespace EmailSender.Core.Services
             try
             {
                 await _engine.ExecuteAsync(task, emails, progress, cts.Token);
-                _taskRepo.UpdateStatus(taskId, TaskStatus.Done);
+                _taskRepo.UpdateStatus(taskId, SendTaskStatus.Done);
             }
             catch (OperationCanceledException)
             {
-                _taskRepo.UpdateStatus(taskId, TaskStatus.Paused);
+                _taskRepo.UpdateStatus(taskId, SendTaskStatus.Paused);
             }
             catch (Exception)
             {
-                _taskRepo.UpdateStatus(taskId, TaskStatus.Failed);
+                _taskRepo.UpdateStatus(taskId, SendTaskStatus.Failed);
                 throw;
             }
             finally
