@@ -48,14 +48,14 @@ namespace EmailSender.UI.Forms
         private void PopulateProviderCombo()
         {
             cmbProvider.Items.Clear();
-            foreach (MailProvider p in Enum.GetValues<MailProvider>())
+            foreach (AccountType p in Enum.GetValues<AccountType>())
                 cmbProvider.Items.Add(MailProviderConfigs.Configs[p].DisplayName);
         }
 
         private void cmbProvider_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (cmbProvider.SelectedIndex < 0) return;
-            var provider = (MailProvider)cmbProvider.SelectedIndex;
+            var provider = (AccountType)cmbProvider.SelectedIndex;
             var cfg = MailProviderConfigs.Configs[provider];
 
             txtHost.Text         = cfg.SmtpHost;

@@ -18,8 +18,8 @@ namespace EmailSender.UI.Controls
         private void LoadData()
         {
             dgvBlacklist.DataSource = null;
-            dgvBlacklist.DataSource = ServiceLocator.BlacklistService.GetAll();
-            lblCount.Text = $"共 {ServiceLocator.BlacklistService.GetCount()} 条";
+            dgvBlacklist.DataSource = ServiceLocator.blacklistService.GetAll();
+            lblCount.Text = $"共 {ServiceLocator.blacklistService.GetCount()} 条";
         }
 
         private void btnAdd_Click(object sender, EventArgs e)
@@ -28,7 +28,7 @@ namespace EmailSender.UI.Controls
             if (string.IsNullOrEmpty(email))
             { UIHelper.Warn("请输入邮件地址"); return; }
 
-            ServiceLocator.BlacklistService.AddManual(email, txtReason.Text.Trim());
+            ServiceLocator.blacklistService.AddManual(email, txtReason.Text.Trim());
             txtEmail.Clear();
             txtReason.Clear();
             LoadData();
@@ -38,7 +38,7 @@ namespace EmailSender.UI.Controls
         {
             if (dgvBlacklist.CurrentRow?.DataBoundItem is not Blacklist b) return;
             if (!UIHelper.Confirm($"确定从黑名单移除 {b.Email}？")) return;
-            ServiceLocator.BlacklistService.Remove(b.Email);
+            ServiceLocator.blacklistService.Remove(b.Email);
             LoadData();
         }
 
@@ -51,7 +51,7 @@ namespace EmailSender.UI.Controls
             if (dlg.ShowDialog() != DialogResult.OK) return;
             try
             {
-                int count = ServiceLocator.BlacklistService.ImportFromFile(dlg.FileName);
+                int count = ServiceLocator.blacklistService.ImportFromFile(dlg.FileName);
                 UIHelper.Info($"导入成功，共添加 {count} 条");
                 LoadData();
             }
@@ -80,7 +80,7 @@ namespace EmailSender.UI.Controls
         {
             var kw = txtSearch.Text.Trim().ToLower();
             if (string.IsNullOrEmpty(kw)) { LoadData(); return; }
-            var all = ServiceLocator.BlacklistService.GetAll();
+            var all = ServiceLocator.blacklistService.GetAll();
             dgvBlacklist.DataSource = all.FindAll(b =>
                 b.Email.ToLower().Contains(kw));
         }

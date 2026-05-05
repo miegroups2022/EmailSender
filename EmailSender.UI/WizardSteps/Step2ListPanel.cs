@@ -22,7 +22,7 @@ namespace EmailSender.UI.WizardSteps
         {
             try
             {
-                var lists = await ServiceLocator.MeetbyApi.GetEmailListsAsync();
+                var lists = await ServiceLocator.meetbyApiClient.GetEmailListsAsync();
                 dgvLists.DataSource = lists.Select(l => new {
                     列表ID   = l.ListId,
                     列表名称 = l.ListName,

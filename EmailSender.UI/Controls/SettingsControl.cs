@@ -17,7 +17,7 @@ namespace EmailSender.UI.Controls
         // ── 加载所有配置 ───────────────────────────────────────
         private void LoadAllSettings()
         {
-            var cfg = ServiceLocator.AppConfigRepo;
+            var cfg = ServiceLocator.configRepository;
 
             // Tab1：meetby / SendCloud
             txtMeetbyUrl.Text      = cfg.Get("MeetbyBaseUrl")      ?? "http://ems.meetby.net";
@@ -47,13 +47,13 @@ namespace EmailSender.UI.Controls
         private void LoadAccounts()
         {
             dgvAccounts.DataSource = null;
-            dgvAccounts.DataSource = ServiceLocator.SenderAccountRepo.GetAll();
+            dgvAccounts.DataSource = ServiceLocator.senderAccountRepository.GetAll();
         }
 
         // ── 保存 ───────────────────────────────────────────────
         private void btnSave_Click(object sender, EventArgs e)
         {
-            var cfg = ServiceLocator.AppConfigRepo;
+            var cfg = ServiceLocator.co;
 
             cfg.Set("MeetbyBaseUrl",       txtMeetbyUrl.Text.Trim());
             cfg.Set("SendCloudApiUrl",     txtSendCloudUrl.Text.Trim());
@@ -69,8 +69,8 @@ namespace EmailSender.UI.Controls
             cfg.Set("MicrosoftClientId",   txtMsClientId.Text.Trim());
             cfg.Set("MicrosoftClientSecret", txtMsClientSecret.Text.Trim());
 
-            // 重新初始化 SendCloud 客户端
-            ServiceLocator.ReloadSendCloud();
+            // 重新初始化 SendCloud 客户端  ReloadSendCloud
+            ServiceLocator.Initialize();
 
             UIHelper.Info("配置保存成功！");
         }
@@ -97,7 +97,7 @@ namespace EmailSender.UI.Controls
                 OAuthEmail  = txtOAuthEmail.Text.Trim(),
                 ApiUser     = txtApiUser.Text.Trim(),
             };
-            ServiceLocator.SenderAccountRepo.Add(account);
+            ServiceLocator.senderAccountRepository.Add(account);
             LoadAccounts();
             UIHelper.Info($"账户「{name}」添加成功！");
         }
@@ -106,7 +106,7 @@ namespace EmailSender.UI.Controls
         {
             if (dgvAccounts.CurrentRow?.DataBoundItem is not SenderAccount acc) return;
             if (!UIHelper.Confirm($"确定删除账户「{acc.Name}」？")) return;
-            ServiceLocator.SenderAccountRepo.Delete(acc.Id);
+            ServiceLocator.senderAccountRepository.Delete(acc.Id);
             LoadAccounts();
         }
 
