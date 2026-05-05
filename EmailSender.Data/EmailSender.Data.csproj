@@ -20,14 +20,16 @@
     <!-- ORM -->
     <PackageReference Include="Dapper" Version="2.1.72" />
 
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    
     <!-- SQLite（本地存储） -->
-    <PackageReference Include="System.Data.SQLite" Version="1.0.119" />
+    <PackageReference Include="System.Data.SQLite" Version="1.0.118" />
 
     <!-- MySQL（可选，按需保留） -->
     <PackageReference Include="MySql.Data" Version="9.7.0" />
 
     <!-- 异步接口（统一版本） -->
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="9.0.1" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.0" />
   </ItemGroup>
 
 </Project>
